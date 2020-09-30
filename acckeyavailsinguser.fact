@@ -1,0 +1,15 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+
+count=0
+for UserName in `aws iam list-users --query 'Users[*].UserName' --output text`;
+do
+if [ $(aws iam list-access-keys --user-name $UserName | jq '.AccessKeyMetadata[].Status' | grep -c -i Active) -eq 1 ]; then
+   count=$((count+1))
+fi
+done
+if [ "$count" -ne 0 ]; then
+  echo "{ \"OneAcckeyavailforiamuser\" : \"PASSED\"}"
+else
+  echo "{ \"1.13 Ensure there is only one active access key available for any single IAM user\" : \"FAILED\"}"
+fi

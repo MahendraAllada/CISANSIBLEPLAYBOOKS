@@ -1,0 +1,17 @@
+#!/bin/bash
+count=0
+for TrailName in `aws cloudtrail describe-trails | jq '.trailList[].Name' | sed 's/"//g'`;
+do
+if [ "$(aws cloudtrail describe-trails | grep IsMultiRegionTrail | grep true)" ];then
+   if [ "$(aws cloudtrail get-trail-status --name $TrailName | grep IsLogging | grep true)" ];then
+      if  [ "$(aws cloudtrail get-event-selectors --trail-name $TrailName | jq '.EventSelectors[].IncludeManagementEvents' | grep true | wc -l)" -gt 0 ] && [ "$(aws cloudtrail get-event-selectors --trail-name $TrailName | jq '.EventSelectors[].ReadWriteType' | grep All | wc -l)" -gt 0 ];then
+       count=$((count+1))
+      fi
+   fi
+fi
+done
+if [ "$count" -eq 0 ]; then
+    echo "{ \"3.1 Ensure CloudTrail is enabled in all region\" : \"FAILED\" }"
+else
+    echo "{ \"All Regions Enabled\" : \"PASSED\" }"
+fi

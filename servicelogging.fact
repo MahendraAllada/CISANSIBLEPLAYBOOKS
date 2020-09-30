@@ -1,0 +1,15 @@
+#!/bin/bash
+# 3.6 Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket 
+
+count=0
+for S3BName in `aws cloudtrail describe-trails |  jq '.trailList[].S3BucketName' | sed 's/"//g'`;
+do
+if [ "$(aws s3api get-bucket-logging --bucket  $S3BName | wc -l)" -eq "0" ]; then
+ count=$((count+1))
+fi
+done
+if [ "$count" -ne "0" ]; then
+    echo "{ \"3.6 Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket\" : \"FAILED\" }"
+else
+    echo "{ \"AccessLogging\" : \"PASSED\" }"
+fi

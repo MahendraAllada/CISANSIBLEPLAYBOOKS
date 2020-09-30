@@ -1,0 +1,15 @@
+#!/bin/bash
+# 2.1.2 Ensure S3 Bucket Policy allows HTTPS requests
+
+count=0
+for BucketName in `aws s3api list-buckets | jq '.Buckets[].Name' | sed 's/"//g'`;
+do
+if [ $(aws s3api get-bucket-policy --bucket $BucketName | grep aws:SecureTransport) -ne 0 ]; then
+ count=$((count+1))
+fi
+done
+if [ $count -eq 0 ]; then
+echo "{ \"2.1.2  Ensure S3 Bucket Policy allows HTTPS requests\" : \"FAILED\" }"
+else
+echo "{ \"S3 Bucket Policy allows HTTPS requests\" : \"PASSED\" }"
+fi

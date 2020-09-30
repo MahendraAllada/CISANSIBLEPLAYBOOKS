@@ -1,0 +1,8 @@
+#!/bin/bash
+# ** AUTO GENERATED **
+
+if [ "$(aws ec2 describe-network-acls | egrep -w 'NetworkAcls|Entries|"CidrBlock": "0.0.0.0/0"|RuleAction": "allow"|RuleNumber' | wc -l)" -gt 4 ]; then
+   echo "{ \"5.1 Ensure no Network ACLs allow ingress from 0.0.0.0/0 to remote server administration ports \" : \"FAILED\"}"
+else
+   echo "{ \"NetworkAclsingress\" : \"PASSED\"}"
+fi

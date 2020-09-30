@@ -1,0 +1,11 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+# 3.9 Ensure VPC flow logging is enabled in all VPCs 
+
+DFL=$( aws ec2 describe-flow-logs | grep "FlowLogStatus" )
+NOW='            "FlowLogStatus": "ACTIVE",'
+if [ "$NOW" = "$DFL" ];then
+   echo "{ \"VPCFlowLogEnabled\" : \"PASSED\" }"
+else
+   echo "{ \"Ensure VPC flow logging is enabled in all VPCs\" : \"FAILED\" }"
+fi

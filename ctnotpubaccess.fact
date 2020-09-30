@@ -1,0 +1,17 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+
+count=0
+for BucketName in `aws cloudtrail describe-trails | jq '.trailList[].S3BucketName' | sed 's/"//g'`;
+do
+if [ $(aws s3api get-bucket-acl --bucket $BucketName --query 'Grants[?Grantee.URI== `http://acs.amazonaws.com/groups/global/Authenticated Users` ]' | wc -l ) -lt 2 ] && [ $(aws s3api get-bucket-acl --bucket $BucketName  --query 'Grants[?Grantee.URI== `http://acs.amazonaws.com/groups/global/AllUsers` ]' | wc -l ) -lt 2 ]; then
+   if [ $(aws s3api get-bucket-policy --bucket $BucketName --query Policy --output text | jq '.Statement[].Principal' | grep *) ] && [ $(aws s3api get-bucket-policy --bucket $BucketName --query Policy --output text | jq '.Statement[].Effect' | grep Allow | wc -l ) -eq 0 ]; then
+      count=$((count+1))
+   fi
+fi
+done
+if [ "$count" -eq 0 ]; then  
+   echo "{ \"3.3 Ensure the S3 bucket used to store CloudTrail logs is not publicly accessible\" : \"FAILED\"}"
+else
+   echo "{ \"CTpubliclyAccessible\" : \"PASSED\"}"
+fi

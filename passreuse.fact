@@ -1,0 +1,8 @@
+#!/bin/sh
+#1.9  Ensure IAM password policy prevents password reuse
+
+if [ $( aws iam get-account-password-policy | grep "PasswordReusePrevention" | wc -l ) -eq 0 ] ; then 
+   echo "{ \"1.9 IAM password policy prevents password reuse\" : \"FAILED\"}"
+else
+   echo "{ \"1.9 PASSWORD REUSE\" : \"PASSED\"}"
+fi

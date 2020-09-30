@@ -1,0 +1,10 @@
+#!/bin/bash
+# ** AUTO GENERATED **
+#  5.3  Ensure the default security group of every VPC restricts all traffic 
+
+#!/bin/bash
+if [ "$( aws ec2 describe-security-groups --filter Name=group-name,Values=default | grep -e '-1' | wc -l)" -eq "0" ]; then
+    echo "{ \"VPC restricts all traffic\" : \"PASSED\" }"
+else
+    echo "{ \"5.3 Ensure the default security group of every VPC restricts all traffic\" : \"FAILED\" }"
+fi

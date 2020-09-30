@@ -1,0 +1,10 @@
+#!/bin/bash
+#1.8 Ensure IAM password policy requires minimum length of 14 or greater 
+
+Value1=14
+Value2=$(aws iam get-account-password-policy --query "PasswordPolicy.MinimumPasswordLength")
+if [ "$Value2" -ge "$Value1" ]; then
+   echo "{ \"1.8  PASSWORD Length\" : \"PASSED\"}"
+else
+   echo "{ \"1.8 IAM password policy requires minimum length of 14 or greater\" : \"FAILED\"}"
+fi

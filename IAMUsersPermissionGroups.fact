@@ -1,0 +1,11 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+
+for UserName in `aws iam list-users --query 'Users[*].UserName' --output text`;
+do
+if [ $(aws iam list-attached-user-policies --user-name $UserName | wc -l) -eq "3" ] && [ $(aws iam list-user-policies --user-name $UserName | wc -l) -eq "3" ]; then
+   echo "{ \"IAMUSERSReceivePermissionsOnlyThroughGroups\" : \"PASSED\"}"
+else
+   echo "{ \"1.15  Ensure IAM Users Receive Permissions Only Through Groups \" : \"FAILED\"}"
+fi
+done

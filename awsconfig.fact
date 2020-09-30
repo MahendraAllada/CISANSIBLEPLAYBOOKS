@@ -1,0 +1,7 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+if [ $(aws iam get-account-summary | egrep "AccountMFAEnable.*1" | wc -l) -eq 0 ]; then
+    echo "{ \"1.5 Ensure MFA is enabled for the "root user" account\" : \"FAILED\"}"
+else
+   echo "{ \"RootAccMFAEnabled\" : \"PASSED\"}"
+fi

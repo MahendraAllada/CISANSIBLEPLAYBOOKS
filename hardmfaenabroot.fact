@@ -1,0 +1,11 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+
+if [ $(aws iam get-account-summary | egrep "AccountMFAEnable.*1" | wc -l) -gt 0 ] || [ $(aws iam list-virtual-mfa-devices | jq '.VirtualMFADevices[].SerialNumber' | wc -l) -gt 0 ]; then
+   count=$((count+1))
+fi
+if [ "$count" -eq "0" ]; then
+   echo "{ \"1.5  Ensure  MFA is enabled for the "root user" account\" : \"FAILED\"}"
+else
+   echo "{ \"RootAccHwMFAEnabled\" : \"PASSED\"}"
+fi

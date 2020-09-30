@@ -1,0 +1,15 @@
+#!/bin/bash
+# 2.1.1 Ensure all S3 buckets employ encryption-at-rest
+
+count=0
+for BucketName in `aws s3api list-buckets | jq '.Buckets[].Name' | sed 's/"//g'`;
+do
+if [ "$(aws s3api get-bucket-encryption --bucket $BucketName 2> /dev/null | wc -l)" -ne 0 ]; then
+ count=$((count+1))
+fi
+done
+if [ "$count" -eq "0" ]; then
+echo "{ \"2.1.1 Ensure all S3 buckets employ encryption-at-rest\" : \"FAILED\" }"
+else
+echo "{ \"S3 buckets employ encryption\" : \"PASSED\" }"
+fi

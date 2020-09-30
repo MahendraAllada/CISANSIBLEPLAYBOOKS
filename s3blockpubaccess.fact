@@ -1,0 +1,16 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+count=0
+for BucketName in `aws s3api list-buckets |  jq '.Buckets[].Name' | sed 's/"//g'`;
+do
+if [ $(aws s3api get-public-access-block --bucket amn | jq '.PublicAccessBlockConfiguration[]' | grep true | wc -l) -eq 4 ]; then
+    if [ $(aws s3control get-public-access-block --account-id 405042254276 --region us-east-1 | jq '.PublicAccessBlockConfiguration[]' | grep true | wc -l) -eq 4 ]; then
+    count=$((count+1))
+    fi
+fi
+done
+if [ "$count" -ne "0" ]; then
+   echo "{ \"BlockPublicAccess\" : \"PASSED\"}"
+else
+   echo "{ \"1.20 Ensure that S3 Buckets are configured with 'Block public access'\" : \"FAILED\"}"
+fi

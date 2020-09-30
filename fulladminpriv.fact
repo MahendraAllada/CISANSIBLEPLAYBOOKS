@@ -1,0 +1,28 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+
+count=0
+for Policy in `aws iam list-policies --only-attached --output text | gawk -F' ' {'print $2'}`;
+do
+for Version in `aws iam list-policies --only-attached --output text | gawk -F' ' {'print $5'}`;
+do
+aws iam get-policy-version  --policy-arn $Policy --version-id $Version >/dev/null
+a=$(aws iam get-policy-version  --policy-arn $Policy --version-id $Version | jq -r '.PolicyVersion.Document.Statement[].Action')
+b=*
+c=$(aws iam get-policy-version  --policy-arn $Policy --version-id $Version | jq -r '.PolicyVersion.Document.Statement[].Effect')
+d=*
+e=$(aws iam get-policy-version  --policy-arn $Policy --version-id $Version | jq -r '.PolicyVersion.Document.Statement[].Resource')
+f=Allow
+if [[ $a != $b && $c != $d && $e != $f ]]
+then
+   count=$((count+1))
+else
+   count=0
+fi
+done
+done
+if [ "$count" -ne 0 ]; then
+  echo "{ \"FullAdminPrivlages\" : \"PASSED\"}"
+else
+  echo "{ \"1.16 Ensure IAM policies that allow full "*:*" administrative privileges are not attached\" : \"FAILED\"}"
+fi

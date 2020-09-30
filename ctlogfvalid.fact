@@ -1,0 +1,8 @@
+#!/bin/bash
+# 3.2 Ensure CloudTrail log file validation is enabled
+
+if [ "$(aws cloudtrail describe-trails | jq '.trailList[].LogFileValidationEnabled' | grep true)" ]; then
+    echo "{ \"LogFile Validation\" : \"PASSED\" }"
+else
+    echo "{ \"3.2 Ensure CloudTrail log file validation is enabled\" : \"FAILED\" }"
+fi

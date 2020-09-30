@@ -1,0 +1,49 @@
+#!/bin/bash
+# ** AUTO GENERATED **
+# 4.1 Ensure a log metric filter and alarm exist for unauthorized API calls 
+
+count=0
+for TrailName in `aws cloudtrail describe-trails | jq '.trailList[].Name' | sed 's/"//g'`;
+do
+if [ "$(aws cloudtrail describe-trails | grep IsMultiRegionTrail | grep true)" ]; then
+ if [ "$(aws cloudtrail describe-trails | jq '.trailList[].CloudWatchLogsLogGroupArn' | sed 's/"//g')" ];then
+  if [ "$(aws cloudtrail get-trail-status --name $TrailName | grep IsLogging | grep true)" ];then
+   if [ "$(aws cloudtrail get-event-selectors --trail-name $TrailName | jq '.EventSelectors[].IncludeManagementEvents' | grep true)" ];then
+     if [ "$(aws cloudtrail get-event-selectors --trail-name $TrailName | jq '.EventSelectors[].ReadWriteType' | grep All)" ];then
+             for logGroupName in `aws logs describe-log-groups | jq '.logGroups[].logGroupName' | sed 's/"//g'`;
+             do
+             for metricName in `aws logs describe-metric-filters | jq '.metricFilters[]' | grep metricName | sed 's/"//g'`;
+             do
+             for TopicArn in `aws sns list-topics | jq '.Topics[].TopicArn' | sed 's/"//g'`;
+             do
+             if [ "$(aws logs describe-metric-filters --log-group-name $logGroupName | jq '.metricFilters[].filterName' | grep APICALLS | sed 's/"//g')" ];then
+                if [ "$(aws cloudwatch describe-alarms --query 'MetricAlarms[?MetricName== `$metricName`]'  | wc -l)" -gt "0" ];then
+                   if [ "$(aws sns list-subscriptions-by-topic --topic-arn $TopicArn | jq '.Subscriptions[].SubscriptionArn' | sed 's/"//g' | wc -l)" -gt "0" ];then
+                          count=$((count+1))
+                   fi
+                fi
+             fi
+             done
+             done
+             done
+         else
+             echo "ReadWriteType is not set in ALL : FAiled"
+         fi
+       else
+           echo "IncludeManagementEventsis not set in True : FAiled"
+       fi
+    else
+        echo "IsLogging is not set in True : FAiled"
+    fi
+  else
+      echo "CloudWatchLogsLogGroupArn is not set in True : FAiled"
+  fi
+else
+    echo "IsMultiRegionTrail is not set in True : FAiled"
+fi
+done
+if [ "$count" -eq 0 ]; then
+    echo "{ \"4.1 Ensure a log metric filter and alarm exist for unauthorized API calls\" : \"FAILED\" }"
+else
+    echo "{ \"LogMetric and Alarm\" : \"PASSED\" }"
+fi

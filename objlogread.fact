@@ -1,0 +1,16 @@
+#!/bin/bash
+# 3.11 Ensure that Object-level logging for read events is enabled for S3 bucket
+
+count=0
+for TrailName in `aws cloudtrail describe-trails --region us-east-1 | jq '.trailList[].Name' | sed 's/"//g'`;
+do
+if [ "$(aws cloudtrail get-event-selectors --region us-east-1 --trail-name $TrailName --query EventSelectors[*].DataResources[] | wc -l)" -gt 2 ]; then
+     count=$((count+1))
+fi
+done
+if [ $count -eq 0 ]; then
+echo "{ \"3.11 Ensure that Object-level logging for read events is enabled for S3 bucket\" : \"FAILED\" }"
+else
+echo "{ \"Object-level logging Enabled\" : \"PASSED\" }"
+fi
+

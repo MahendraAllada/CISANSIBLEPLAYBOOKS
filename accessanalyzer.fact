@@ -1,0 +1,15 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+
+count=0
+for AccessAnalyzers in `aws  accessanalyzer list-analyzers | jq '.analyzers[].name' | sed 's/"//g'`
+do
+if [ $(aws accessanalyzer get-analyzer --analyzer-name $AccessAnalyzers | jq '.analyzer.status' | grep ACTIVE | wc -l) -gt 0 ]; then
+   count=$((count+1))
+fi
+done
+if [ "$count" -eq "0" ]; then
+   echo "{ \"1.21 Ensure that IAM Access analyzer is enabled\" : \"FAILED\"}"
+else
+   echo "{ \"AnalyzerEnabled\" : \"PASSED\"}"
+fi

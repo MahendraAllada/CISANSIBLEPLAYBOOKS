@@ -1,0 +1,9 @@
+#!/bin/bash
+# ** AUTO GENERATED **
+
+PolicyArn=$(aws iam list-policies  | jq '.Policies[].Arn' | grep AWSSupportAccess | sed 's/"//g')
+if [ "$(aws iam list-entities-for-policy --policy-arn  $PolicyArn  | grep "RoleName")" ]; then
+   echo "{ \"AWSSupportRoleCreated\" : \"PASSED\"}"
+else
+   echo "{ \"1.17 Ensure a support role has been created to manage incidents with AWS Support\" : \"FAILED\"}"
+fi

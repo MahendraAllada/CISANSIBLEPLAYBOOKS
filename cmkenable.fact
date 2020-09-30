@@ -1,0 +1,16 @@
+#!/bin/sh
+# ** AUTO GENERATED **
+# 3.8  Ensure rotation for customer created CMKs is enabled  
+
+count=0
+for KeyId in `aws kms list-keys | jq '.Keys[].KeyId' | sed 's/"//g'`;
+do
+if [ "$(aws kms get-key-rotation-status --key-id $KeyId | grep "true" | wc -l)" -eq 1 ] ; then
+ count=$((count+1))
+fi
+done
+if [ "$count" -le "2" ]; then
+   echo "{ \"3.8  Ensure rotation for customer created CMKs is enabled\" : \"FAILED\" }"
+else
+   echo "{ \"KMSRotationEnabled\" : \"PASSED\" }"
+fi

@@ -1,0 +1,15 @@
+#!/bin/bash
+# 2.2.1  Ensure EBS volume encryption is enabled
+
+count=0
+for Region in `aws ec2 describe-regions | jq '.Regions[].RegionName' | sed 's/"//g'`;
+do
+if [ "$(aws --region $Region ec2 get-ebs-encryption-by-default | grep EbsEncryptionByDefault | grep true | wc -l)" -ne 0 ]; then
+ count=$((count+1))
+fi
+done
+if [ "$count" -eq "0" ]; then
+echo "{ \"2.2.1  Ensure EBS volume encryption is enabled\" : \"FAILED\" }"
+else
+echo "{ \"EBS volume encryption\" : \"PASSED\" }"
+fi

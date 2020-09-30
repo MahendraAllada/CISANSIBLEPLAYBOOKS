@@ -1,0 +1,10 @@
+#!/bin/bash
+# 3.7 Ensure CloudTrail logs are encrypted at rest using KMS CMKs 
+
+A=$(aws cloudtrail describe-trails | jq '.trailList[].KmsKeyId' | wc -l)
+B=$(aws cloudtrail describe-trails | jq '.trailList[].Name' | wc -l)
+if [ "$A" == "$B"  ];then
+    echo "{ \"Logs are encrypted at rest using KMS CMKs\" : \"PASSED\" }"
+else
+    echo "{ \"3.7 Ensure CloudTrail logs are encrypted at rest using KMS CMKs\" : \"FAILED\" }"
+fi
