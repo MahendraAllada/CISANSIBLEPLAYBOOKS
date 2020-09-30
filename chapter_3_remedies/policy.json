@@ -1,0 +1,12 @@
+{             
+  "Sid":  ,     
+  "Effect": "Deny",           
+      "Principal": "*",          
+      "Action": "s3:GetObject",     
+      "Resource": "arn:aws:s3:::amn",      
+      "Condition": {          
+	  "Bool": {               
+	      "aws:SecureTransport": "false"         
+	  }          
+      }     
+} 

@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+  - name: 4.4 Ensure a log metric filter and alarm exist for IAM policy changes
+    community.aws.cloudwatchlogs_log_group_metric_filter:
+      log_group_name: cislog1
+      filter_name: IAMPolicyEvent
+      filter_pattern: '{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}'
+      state: present
+      metric_transformation:
+          metric_name: IAMPolicyEventCount
+          metric_namespace: CloudTrailMetrics
+          metric_value: "1"      
+  - name: 4.4 Ensure a log metric filter and alarm exist for IAM policy changes
+    sns_topic:
+      name: "cis-sns"
+      state: present
+      display_name: "SNS topic"
+      subscriptions:
+        - endpoint: "+91 7675955514"
+          protocol: "sms"
+  - name: 4.4 Ensure a log metric filter and alarm exist for IAM policy changes
+    community.aws.ec2_metric_alarm:
+      state: present
+      region: us-east-1
+      name: "IAMalarm"
+      metric: "IAMPolicyEventCount"
+      namespace: "CloudTrailMetrics"
+      statistic: "Minimum"
+      comparison: ">="
+      threshold: 1
+      period: 300
+      evaluation_periods: 1
+      unit: "Count"
+      alarm_actions: ["arn:aws:sns:us-east-1:405042254276:cis-sns"]

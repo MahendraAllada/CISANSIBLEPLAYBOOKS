@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become_method: sudo
+  become: yes
+
+  tasks:
+
+  - name: 3.6  Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket
+    shell: echo "{{ ansible_local.servicelogging }}" 
+    register: servicelogging
+    ignore_errors: True
+    tags:
+      - securitygrping
+      - '3.6'
+      - three
+      - all
+
+  - name: 3.6  Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket 
+    shell: |
+      for BucketName in `aws s3api list-buckets | jq '.Buckets[].Name' | sed 's/"//g'`;
+      do
+      aws s3api put-bucket-logging --bucket $BucketName --bucket-logging-status file://logging.json
+      done
+    args:
+      executable: /bin/bash 
+    when: servicelogging.stdout.find("FAILED") != -1
+    tags:
+      - servicelogging
+      - '3.6'
+      - three
+      - all 

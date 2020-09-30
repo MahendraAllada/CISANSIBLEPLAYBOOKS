@@ -1,0 +1,30 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become_method: sudo
+  become: yes
+
+  tasks: 
+
+  - name: 1.17 Ensure a support role has been created to manage incidents with AWS Support
+    shell: echo "{{ ansible_local.awssupportaccess }}"
+    register: awssupportaccess
+    ignore_errors: True
+    tags:
+      - awssupportaccess
+      - '1.17'
+      - one
+      - all
+
+  - name: 1.17 Ensure a support role has been created to manage incidents with AWS Support 
+    iam_role:
+      name: mynewrole
+      assume_role_policy_document: "{{ lookup('file','Trustpolicy.json') }}"
+      managed_policy:
+        - arn:aws:iam::aws:policy/AWSSupportAccess
+    when: awssupportaccess.stdout.find("FAILED") != -1
+    tags:
+      - awssupportaccess
+      - 1.17
+      - one
+      - all

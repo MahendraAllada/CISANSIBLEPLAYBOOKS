@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become_method: sudo
+  become: yes
+  
+  tasks:
+  
+  - name: "Remove the ingress and egress rules - defaults to deny all"
+    ec2_vpc_nacl:
+      vpc_id: vpc-044fe0d63342c2fe3
+      name: mahi
+      region: us-east-1
+      state: absent

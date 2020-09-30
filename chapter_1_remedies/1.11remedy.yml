@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become_method: sudo
+  become: yes
+
+  tasks:
+  
+  - name:  1.11 Do not setup access keys during initial user setup for all IAM users that have a console password
+    shell: echo "{{ ansible_local.iamconsolepasswd }}" 
+    register: iamconsolepasswd
+    ignore_errors: True
+    tags:
+      - iamconsolepasswd
+      - 1.11
+      - one
+      - all
+
+  - name: 1.11 Do not setup access keys during initial user setup for all IAM users that have a console password  
+    shell: | 
+       for UserName in `aws iam list-users | jq '.Users[].UserName' | sed 's/"//g'`;
+       do
+       for AccessKey in `aws iam list-access-keys --user-name $UserName  | jq '.AccessKeyMetadata[].AccessKeyId' | sed 's/"//g'`;
+       do
+       aws iam delete-access-key --access-key-id $AccessKey --user-name $UserName 
+       done
+       done
+    args:
+      executable: /bin/bash
+    when: iamconsolepasswd.stdout.find("FAILED") != -1
+    tags:
+      - iamconsolepasswd
+      - 1.11
+      - one
+      - all

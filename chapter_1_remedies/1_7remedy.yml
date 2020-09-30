@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+
+  tasks:
+   
+  - name:  1.7 Eliminate use of the root user for administrative and daily tasks  
+    shell: echo "{{ ansible_local.rootusradmin }}" 
+    register: rootusradmin
+    ignore_errors: True
+    tags:
+      - rootusradmin
+      - 1.7
+      - one
+      - all
+
+
+  - name: 1.7 Eliminate use of the root user for administrative and daily tasks  
+    shell: | 
+       for AccessKey in `aws iam list-access-keys | jq '.AccessKeyMetadata[].AccessKeyId' | sed 's/"//g'`;
+       do
+       aws iam delete-access-key --access-key-id $AccessKey 
+       done
+    args:
+      executable: /bin/bash
+    when: rootusradmin.stdout.find("FAILED") != -1
+    tags:
+      - rootusradmin
+      - 1.7
+      - one
+      - all

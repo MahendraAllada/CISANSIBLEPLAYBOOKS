@@ -1,0 +1,36 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+
+  tasks:
+   
+  - name:  1.14 Ensure access keys are rotated every 90 days or less 
+    shell: echo "{{ ansible_local.acckeyrotninetydays }}" 
+    register: acckeyrotninetydays
+    ignore_errors: True
+    tags:
+      - acckeyrotninetydays
+      - 1.14
+      - one
+      - all
+
+
+  - name: 1.14 Ensure access keys are rotated every 90 days or less   
+    shell: | 
+       for UserName in `aws iam list-users | jq '.Users[].UserName' | sed 's/"//g'`;
+       do
+       for AccessKey in `aws iam list-access-keys --user-name $UserName | jq '.AccessKeyMetadata[].AccessKeyId' | sed 's/"//g'`;
+       do
+       aws iam update-access-key --access-key-id $AccessKey --status Inactive --user-name $UserName
+       aws iam delete-access-key --access-key-id $AccessKey --user-name $UserName
+       aws iam create-access-key --user-name $UserName
+    args:
+      executable: /bin/bash
+    when: acckeyrotninetydays.stdout.find("FAILED") != -1
+    tags:
+      - acckeyrotninetydays
+      - 1.14
+      - one
+      - all

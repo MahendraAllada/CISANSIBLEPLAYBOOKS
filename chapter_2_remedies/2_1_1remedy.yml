@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  
+  tasks:
+  
+  - name: 2.1.1 Ensure all S3 buckets employ encryption-at-rest 
+    shell: echo "{{ ansible_local.s3encryp }}" 
+    register: s3encryp
+    ignore_errors: True
+    tags:
+      - s3encryp
+      - two
+      - all
+  
+  - name: 2.1.1 Fetching the bucketname list
+    shell: aws s3api list-buckets | jq '.Buckets[].Name' | sed 's/"//g'
+    register: bucket_names
+    when: s3encryp.stdout.find("FAILED") != -1
+    tags:
+      - s3encrp
+      - two
+      - all
+
+  - name: 2.1.1 Ensure all S3 buckets employ encryption-at-rest 
+    shell: |
+      aws s3api put-bucket-encryption --bucket "{{ item }}" --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
+    loop: "{{ bucket_names.stdout_lines }}"
+    when: s3encryp.stdout.find("FAILED") != -1
+    tags: 
+      - s3encryp
+      - two
+      - all

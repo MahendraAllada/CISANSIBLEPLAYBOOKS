@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+  - name: 4.3 Ensure a log metric filter and alarm exist for usage of root account
+    community.aws.cloudwatchlogs_log_group_metric_filter:
+      log_group_name: cislog1
+      filter_name: RootAccountUsage
+      filter_pattern: '{ $.userIdentity.type = "Root" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != "AwsServiceEvent" }'
+      state: present
+      metric_transformation:
+          metric_name: RootAccountUsageCount
+          metric_namespace: CloudTrailMetrics
+          metric_value: "1"
+  - name: 4.3 Ensure a log metric filter and alarm exist for usage of root account
+    sns_topic:
+      name: "cis-sns"
+      state: present
+      display_name: "SNS topic"
+      subscriptions:
+        - endpoint: "mahi32353@gmail.com"
+          protocol: "email"
+        - endpoint: "+91 7675955514"
+          protocol: "sms"
+  - name: 4.3  Ensure a log metric filter and alarm exist for usage of root account
+    community.aws.ec2_metric_alarm:
+      state: present
+      region: us-east-1
+      name: "RootAccountUsagecountalarm"
+      metric: "RootAccountUsagecount"
+      namespace: "Cloudtrailmetrics"
+      statistic: "Minimum"
+      comparison: ">="
+      threshold: 1.0
+      period: 300
+      evaluation_periods: 1
+      unit: "Count"
+      alarm_actions: ["arn:aws:sns:us-east-1:405042254276:cis-sns"]

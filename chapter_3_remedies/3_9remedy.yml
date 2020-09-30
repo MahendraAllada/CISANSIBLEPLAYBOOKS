@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  
+  tasks:
+  
+  - name: 3.9 Ensure VPC flow logging is enabled in all VPCs  
+    shell: echo "{{ ansible_local.flowlog }}" 
+    register: flowlog
+    ignore_errors: True
+    tags:
+      - flowlog
+#      - 3.9
+      - three
+      - all
+  
+  - name: 3.8 Fetching vpcid
+    shell: | 
+      aws ec2 describe-vpcs | jq '.Vpcs[].VpcId' | sed 's/"//g'
+    register: vpc_id
+    when: flowlog.stdout.find("FAILED") != -1
+    tags:
+      - flowlog
+#      - 3.9
+      - three
+      - all
+
+  - name: 3.9 Ensure VPC flow logging is enabled in all VPCs
+    shell: |
+       aws ec2 create-flow-logs --resource-type VPC --resource-ids "{{ item }}" --traffic-type ALL --log-destination-type s3 --log-destination arn:aws:s3:::zipops/mahi/ --log-format '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}' 
+    loop: "{{ vpc_id.stdout_lines }}"
+    when: flowlog.stdout.find("FAILED") != -1
+    tags:
+      - flowlog
+#      - 3.9
+      - three
+      - all

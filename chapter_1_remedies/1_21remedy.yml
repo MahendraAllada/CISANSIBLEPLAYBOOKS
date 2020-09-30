@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become_method: sudo
+  become: yes
+
+  tasks:
+
+  - name: 1.21 Ensure that IAM Access analyzer is enabled 
+    shell: echo "{{ ansible_local.accessanalyzer }}"
+    register: accessanalyzer
+    ignore_errors: True
+    tags:
+      - accessanalyzer
+      - '1.21'
+      - one
+      - all
+
+  - name: 1.21 Ensure that IAM Access analyzer is enabled 
+    shell: |
+      aws accessanalyzer create-analyzer --analyzer-name mahi --type ACCOUNT
+    args:
+      executable: /bin/bash
+    when: accessanalyzer.stdout.find("FAILED") != -1
+    tags:
+      - accessanalyzer
+      - 1.21
+      - one
+      - all

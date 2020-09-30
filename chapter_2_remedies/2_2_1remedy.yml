@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  
+  tasks:
+  
+  - name: 2.2.1  Ensure EBS volume encryption is enabled  
+    shell: echo "{{ ansible_local.ebsencryp }}" 
+    register: ebsencryp
+    ignore_errors: True
+    tags:
+      - ebsencryp
+      - 2.2.1
+      - three
+      - all
+  
+  - name: 2.2.1 Fetching regionnames
+    shell: |
+      aws ec2 describe-regions | jq '.Regions[].RegionName' | sed 's/"//g'
+    register: region_names
+    when: ebsencryp.stdout.find("FAILED") != -1
+    tags:
+      - ebsencryp
+      - 2.2.1
+      - three
+      - all
+
+  - name: 2.2.1 Ensure EBS volume encryption is enabled 
+    shell: |
+       aws --region "{{ item }}" ec2 enable-ebs-encryption-by-default
+    loop: "{{ region_names.stdout_lines }}"
+    when: ebsencryp.stdout.find("FAILED") != -1
+    tags:
+      - ebsencryp
+      - 2.2.1
+      - three
+      - all

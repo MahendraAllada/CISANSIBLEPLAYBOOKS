@@ -1,0 +1,36 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+
+  tasks:
+
+  - name: 3.7(a) 3.7 Ensure CloudTrail logs are encrypted at rest using KMS CMKs 
+    shell: echo "{{ ansible_local.ctlogencryp }}" 
+    register: ctlogencryp
+    ignore_errors: True
+    tags:
+      - ctlogencryp
+      - '3.7'
+      - three
+      - all 
+
+  - name: 3.7(b) 3.7 Ensure CloudTrail logs are encrypted at rest using KMS CMKs 
+    shell: |
+      for KMSKEYID in `aws kms list-keys | jq '.Keys[].KeyId' | sed 's/"//g'`;
+      do
+      for TrailName in `aws cloudtrail describe-trails | jq '.trailList[].Name' | sed 's/"//g'`;
+      do
+      aws kms put-key-policy --key-id $KMSKEYID --policy-name default --policy file://encrypt2.json
+      aws cloudtrail update-trail --name $TrailName --kms-key-id $KMSKEYID
+      done
+      done
+    args:
+      executable: /bin/bash
+    when: ctlogencryp.stdout.find("FAILED") != -1
+    tags:
+      - ctlogencryp
+      - 3.7
+      - three
+      - all

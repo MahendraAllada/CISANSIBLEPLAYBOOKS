@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+   
+  - name: 3.2(a)  Ensure CloudTrail log file validation is enabled 
+    shell: echo "{{ ansible_local.ctlogfvalid }}"
+    register: ctlogfvalid
+    ignore_errors: True
+    tags:
+      - ctlogfvalid
+      - '3.2'
+      - three
+      - all
+
+  - name: 3.2(b) Ensure CloudTrail log file validation is enabled 
+    cloudtrail:
+      state: present
+      name: "{{ item.name }}"
+      s3_bucket_name: "{{ item.s3_bucket_name }}"
+      region: "{{ item.region }}"
+      enable_log_file_validation: true
+    with_items:
+      - { name: dap, s3_bucket_name: amn, region: us-east-1}
+      - { name: pad, s3_bucket_name: amn, region: us-east-1}  
+    when: ctlogfvalid.stdout.find("FAILED") != -1
+    tags:
+      - ctlogfvalid
+      - 3.2
+      - three
+      - all
