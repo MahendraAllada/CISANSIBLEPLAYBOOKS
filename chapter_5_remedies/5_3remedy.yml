@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+
+  tasks:
+  tasks:
+  - name: 5.3(a) 5.3 Ensure the default security group of every VPC restricts all traffic 
+    shell: echo "{{ ansible_local.securitygrpalltraf }}" 
+    register: securitygrpalltraf
+    ignore_errors: True
+    tags:
+      - securitygrpalltraf
+      - '5.3'
+      - five
+      - all
+
+  - name: 5.3(b) Ensure the default security group of every VPC restricts all traffic 
+    shell: |
+      for GroupId in `aws ec2 describe-security-groups --filter Name=group-name,Values=default | jq '.SecurityGroups[].GroupId' | sed 's/"//g' | sed 's/ //g' |  sed '/^$/d'`;
+      do
+      aws ec2 revoke-security-group-ingress --group-id $GroupId  --protocol all --cidr 0.0.0.0/0
+      aws ec2 revoke-security-group-egress --group-id $GroupId --protocol all --cidr 0.0.0.0/0
+      done
+    args:
+      executable: /bin/bash
+    when: securitygrpalltraf.stdout.find("FAILED") != -1
+    tags:
+      - securitygrpalltraf
+      - '5.3'
+      - five
+      - all   

@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+  - name: 4.8 Ensure a log metric filter and alarm exist for S3 bucket policy changes 
+    community.aws.cloudwatchlogs_log_group_metric_filter:
+      log_group_name: cislog1
+      filter_name: S3BucketActivity
+      filter_pattern: '{ ($.eventSource = s3.amazonaws.com) && (($.eventName = PutBucketAcl) || ($.eventName = PutBucketPolicy) || ($.eventName = PutBucketCors) || ($.eventName = PutBucketLifecycle) || ($.eventName = PutBucketReplication) || ($.eventName = DeleteBucketPolicy) || ($.eventName = DeleteBucketCors) || ($.eventName = DeleteBucketLifecycle) || ($.eventName = DeleteBucketReplication)) }' 
+      state: present
+      metric_transformation:
+          metric_name: S3BucketActivity
+          metric_namespace: CloudTrailMetrics
+          metric_value: "1"
+  - name: 4.8 Ensure a log metric filter and alarm exist for S3 bucket policy changes 
+    sns_topic:
+      name: "cis-sns"
+      state: present
+      display_name: "SNS topic"
+      subscriptions:
+        - endpoint: "+91 7675955514"
+          protocol: "sms"
+  - name: 4.8 Ensure a log metric filter and alarm exist for S3 bucket policy changes  
+    community.aws.ec2_metric_alarm:
+      state: present
+      region: us-east-1
+      name: "S3BPalarm"
+      metric: "S3BucketActivityCount"
+      namespace: "CloudTrailMetrics"
+      statistic: "Minimum"
+      comparison: ">="
+      threshold: 1
+      period: 300
+      evaluation_periods: 1
+      unit: "Count"
+      alarm_actions: ["arn:aws:sns:us-east-1:405042254276:cis-sns"]

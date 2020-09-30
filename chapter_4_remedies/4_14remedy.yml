@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+  - name: 4.14 Ensure a log metric filter and alarm exist for VPC changes
+    community.aws.cloudwatchlogs_log_group_metric_filter:
+      log_group_name: cislog1
+      filter_name: VpcChanges
+      filter_pattern:  '{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }'  
+      state: present
+      metric_transformation:
+          metric_name: VpcChangesCount
+          metric_namespace: CloudTrailMetrics
+          metric_value: "1"
+  - name: 4.14 Ensure a log metric filter and alarm exist for VPC changes
+    sns_topic:
+      name: "cis-sns"
+      state: present
+      display_name: "SNS topic"
+      subscriptions:
+        - endpoint: "+91 7675955514"
+          protocol: "sms"
+  - name: 4.14 Ensure a log metric filter and alarm exist for VPC changes 
+    ec2_metric_alarm:
+      state: present
+      region: us-east-1
+      name: "VPCalarm"
+      metric: "VpcEventCoun"
+      namespace: "CloudTrailMetrics"
+      statistic: "Minimum"
+      comparison: ">="
+      threshold: 1
+      period: 300
+      evaluation_periods: 1
+      unit: "Count"
+      alarm_actions: ["arn:aws:sns:us-east-1:405042254276:cis-sns"]

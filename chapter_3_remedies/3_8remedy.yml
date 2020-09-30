@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  
+  tasks:
+  
+  - name: 3.8 Ensure rotation for customer created CMKs is enabled  
+    shell: echo "{{ ansible_local.cmkenable }}" 
+    register: cmkenable
+    ignore_errors: True
+    tags:
+      - cmkenable
+#     - 3.8
+      - three
+      - all
+  
+  - name: 3.8 Fetching keyid
+    shell: | 
+      aws kms list-keys | jq '.Keys[].KeyId' | sed 's/"//g'
+    register: key_id
+    when: cmkenable.stdout.find("FAILED") != -1
+    tags:
+      - cmkenable
+#     - 3.8
+      - three
+      - all
+
+  - name: 3.8 Ensure rotation for customer created CMKs is enabled
+    shell:  |
+      aws kms enable-key-rotation --key-id "{{ item }}"
+    loop: "{{ key_id.stdout_lines }}"
+    when: cmkenable.stdout.find("FAILED") != -1
+    tags:
+      - cmkenable
+#     - 3.8 
+      - three
+      - all

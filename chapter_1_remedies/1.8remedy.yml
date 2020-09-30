@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+
+  - name: 1.8 Ensure IAM password policy requires minimum length of 14 or greater
+    shell: echo "{{ ansible_local.minlength }}"
+    register: minlength
+    ignore_errors: True
+    tags:
+      - minlength
+      - '1.8'
+      - one
+      - all
+
+  - name: 1.8 Ensure IAM password policy requires minimum length of 14 or greater
+    iam_password_policy:
+      state: present
+      min_pw_length: 15
+    when: minlength.stdout.find("FAILED") != -1
+    tags:
+      - minlength
+      - 1.8
+      - one
+      - all

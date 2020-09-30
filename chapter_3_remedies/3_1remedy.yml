@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+
+  - name: 3.1(a) Ensure CloudTrail is enabled in all regions  
+    shell: echo "{{ ansible_local.ctenballreg }}" 
+    register: ctenballreg
+    ignore_errors: True
+    tags:
+      - ctenballreg
+      - '3.1'
+      - three
+      - all 
+
+  - name: 3.1(a) Ensure CloudTrail is enabled in all regions
+    cloudtrail:
+      state: present
+      name: "{{ item.name }}"
+      s3_bucket_name: "{{ item.s3_bucket_name }}"
+      region: "{{ item.region }}"
+      is_multi_region_trail: true
+    with_items:
+      - { name: dap, s3_bucket_name: amn, region: us-east-1}
+      - { name: pad, s3_bucket_name: amn, region: us-east-1}
+    when: ctenballreg.stdout.find("FAILED") != -1
+    tags:
+      - ctenballreg
+      - 3.1
+      - three
+      - all

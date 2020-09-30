@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+
+  tasks:
+   
+  - name: 1.13 Ensure there is only one active access key available for any single IAM user  
+    shell: echo "{{ ansible_local.acckeyavailsinguser }}" 
+    register: acckeyavailsinguser
+    ignore_errors: True
+    tags:
+      - acckeyavailsinguser
+      - 1.13
+      - one
+      - all
+
+
+  - name: 1.13 Ensure there is only one active access key available for any single IAM user 
+    shell: | 
+       for AccessKey in `aws iam list-access-keys --user-name $UserName | jq '.AccessKeyMetadata[].AccessKeyId' | sed 's/"//g'`;
+       do
+       for UserName in `aws iam list-users | jq '.Users[].UserName' | sed 's/"//g'`;
+       do
+       aws iam update-access-key --access-key-id $AccessKey --status Inactive -user-name $UserName
+       done
+    args:
+      executable: /bin/bash
+    when: acckeyavailsinguser.stdout.find("FAILED") != -1
+    tags:
+      - acckeyavailsinguser
+      - 1.13
+      - one
+      - all

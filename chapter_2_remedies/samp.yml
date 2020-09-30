@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  
+  tasks:
+  
+  - name: 2.1.2 Ensure S3 Bucket Policy allows HTTPS requests 
+    shell: echo "{{ ansible_local.s3http }}" 
+    register: s3http
+    ignore_errors: True
+    tags:
+      - s3http
+      - 2.1.2
+      - two
+      - all
+  
+  - name: 2.1.2 Fetching BucketNames
+    shell: | 
+      aws s3api list-buckets | jq '.Buckets[].Name' | sed 's/"//g'
+    register: s3_buckets
+    when: s3http.stdout.find("FAILED") != -1
+    tags:
+      - s3http
+      - 2.1.2
+      - two
+      - all
+
+  - name: 2.1.2 Ensure S3 Bucket Policy allows HTTPS requests 
+    shell: |
+      aws s3api put-bucket-policy --bucket "{{ item }}" --policy file://policy.json  
+    loop: "{{ s3_buckets.stdout_lines }}"
+    when: s3http.stdout.find("FAILED") != -1
+    tags:
+      - s3http
+      - 2.1.2
+      - two
+      - all

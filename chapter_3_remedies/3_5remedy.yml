@@ -1,0 +1,41 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  
+  tasks: 3.5(a) Ensure AWS Config is enabled in all regions 
+  - name:  
+    shell: echo "{{ ansible_local.awsconfig }}" 
+    register: awsconfig
+    ignore_errors: True
+    tags:
+      - awsconfig
+      - '3.5'
+      - three
+      - all 
+
+  - name: 3.5(b) Ensure AWS Config is enabled in all regions 
+    shell: |
+      for BucketName in `aws s3api list-buckets | jq '.Buckets[].Name' | sed 's/"//g'`;
+      do
+      for SNSArn in `aws sns list-topics | jq '.Topics[].TopicArn' | sed 's/"//g'`;
+      do
+      for ConfigRole in `aws iam list-roles | jq '.Roles[].Arn' | grep arn:aws:iam::405042254276:role/aws-service-role/config.amazonaws.com/AWSServiceRoleForConfig | sed 's/"//g'`;
+      do
+      for Name in `aws configservice describe-configuration-recorder-status | jq '.ConfigurationRecordersStatus[].name' | sed 's/"//g'`;
+      do
+      aws configservice subscribe --s3-bucket $BucketName --sns-topic $SNSArn --iam-role $ConfigRole
+      aws configservice start-configuration-recorder --configuration-recorder-name $Name
+      done
+      done
+      done
+      done
+    args:
+      executable: /bin/bash
+    when: awsconfig.stdout.find("FAILED") != -1
+    tags:
+      - awsconfig
+      - 3.5
+      - three
+      - all

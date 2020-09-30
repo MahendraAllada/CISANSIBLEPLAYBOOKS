@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become_method: sudo
+  become: yes
+
+  tasks:
+
+  - name: 3.10 Ensure that Object-level logging for write events is enabled for S3 bucket
+    shell: echo "{{ ansible_local.objlogwrite }}" 
+    register: objlogwrite
+    ignore_errors: True
+    tags:
+      - objlogwrite
+      - '3.10'
+      - three
+      - all
+
+  - name: 3.10 Ensure that Object-level logging for write events is enabled for S3 bucket 
+    shell: |
+      for TrailName in `aws cloudtrail describe-trails | jq '.trailList[].Name' | sed 's/"//g'`;
+      do
+      for BucketName in `aws cloudtrail describe-trails | jq -r '.trailList' | jq '.[] | select(.Name=="'$TrailName'")' | jq -r '.S3BucketName'`;
+      do
+      aws cloudtrail put-event-selectors --region us-east-1 --trail-name $TrailName --event-selectors '[{ "ReadWriteType": "WriteOnly", "IncludeManagementEvents":true, "DataResources": [{ "Type": "AWS::S3::Object", "Values": ["arn:aws:s3:::'$BucketName'/"] }] }]'
+      done
+      done
+    args:
+      executable: /bin/bash 
+    when: objlogwrite.stdout.find("FAILED") != -1
+    tags:
+      - objlogwrite
+      - '3.10'
+      - three
+      - all  

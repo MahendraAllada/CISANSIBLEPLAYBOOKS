@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  gather_facts: no
+  become_method: sudo
+  become: yes
+
+  tasks:
+   
+  - name:  1.4 Ensure no root user account access key exists 
+    shell: echo "{{ ansible_local.rootaccacckeyexists }}" 
+    register: rootaccacckeyexists
+    ignore_errors: True
+    tags:
+      - rootaccacckeyexists
+      - 1.4
+      - one
+      - all
+
+
+  - name: 1.4 Ensure no root user account access key exists   
+    shell: | 
+       for AccessKey in `aws iam list-access-keys --user-name $UserName | jq '.AccessKeyMetadata[].AccessKeyId' | sed 's/"//g'`;
+       do
+       aws iam update-access-key --access-key-id $AccessKey --status Inactive
+       aws iam delete-access-key --access-key-id $AccessKey 
+       done
+    args:
+      executable: /bin/bash
+    when: rootaccacckeyexists.stdout.find("FAILED") != -1
+    tags:
+      - rootaccacckeyexists
+      - 1.4
+      - one
+      - all

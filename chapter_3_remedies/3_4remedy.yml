@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  tasks:
+
+  - name: 3.4 Ensure CloudTrail trails are integrated with CloudWatch Logs
+    shell: echo "{{ ansible_local.ctintegcwlogs }}" 
+    register: ctintegcwlogs
+    ignore_errors: True
+    tags:
+      - ctintegcwlogs
+      - '3.4'
+      - three
+      - all
+
+  - name: 3.4 Ensure CloudTrail trails are integrated with CloudWatch Logs
+    cloudtrail:
+      state: present
+      name: "{{ item.name }}"
+      region: us-east-1
+      s3_bucket_name: "{{ item.s3_bucket_name }}"
+      cloudwatch_logs_role_arn: "arn:aws:iam::405042254276:role/CloudTrail_CloudWatchLogs_Role"
+      cloudwatch_logs_log_group_arn: "arn:aws:logs:us-east-1:405042254276:log-group:cislog1:*"
+    loop:
+      - { name: pad, s3_bucket_name: amn }
+      - { name: dap, s3_bucket_name: amn }
+    when: ctintegcwlogs.stdout.find("FAILED") != -1
+    tags:
+      - ctintegcwlogs
+      - '3.4'
+      - three
+      - all

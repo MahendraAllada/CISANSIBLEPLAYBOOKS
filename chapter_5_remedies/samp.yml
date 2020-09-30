@@ -1,0 +1,23 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+  
+  tasks: 
+
+  - name: 5.4 Ensure routing tables for VPC peering are "least access" 
+    shell: |
+      for RouteTableId in `aws ec2 describe-route-tables | jq '.RouteTables[].RouteTableId' | sed 's/"//g'`;
+      do
+      for DestinationCidr in `aws ec2 describe-route-tables | jq '.RouteTables[].Routes[].DestinationCidrBlock' | sed 's/"//g'`;
+      do
+      for VPCpeeringId in `aws ec2 describe-vpc-peering-connections | jq '.VpcPeeringConnections[].VpcPeeringConnectionId' | sed 's/"//g'`;
+      do
+      aws ec2 delete-route --route-table-id $RouteTableId --destination-cidr-block $DestinationCidr
+      aws ec2 create-route --route-table-id $RouteTableId --destination-cidr-block $DestinationCidr --vpc-peering-connection-id $VPCpeeringId
+      done
+      done
+      done
+    args:
+      executable: /bin/bash

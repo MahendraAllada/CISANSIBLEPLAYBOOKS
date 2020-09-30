@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+
+  tasks:
+  - name: 5.1 Ensure no Network ACLs allow ingress from 0.0.0.0/0 to remote server administration ports 
+    shell: echo "{{ ansible_local.networkaclingress }}" 
+    register: networkaclingress
+    ignore_errors: True
+    tags:
+      - networkaclingress
+      - '5.1'
+      - five
+      - all
+
+  - name:  5.1 Ensure no Network ACLs allow ingress from 0.0.0.0/0 to remote server administration ports 
+    shell: |
+      for NetworkAclId in `aws ec2 describe-network-acls | jq '.NetworkAcls[].NetworkAclId' | sed 's/"//g'`;
+      do
+      for RuleNumber in `aws ec2 describe-network-acls | jq '.NetworkAcls[].Entries[].RuleNumber' | sed 's/"//g'`;
+      do
+      aws ec2 delete-network-acl-entry --network-acl-id $NetworkAclId --ingress --rule-number $RuleNumber
+      done
+      done
+    args:
+      executable: /bin/bash
+    when: networkaclingress.stdout.find("FAILED") != -1
+    tags:
+      - networkaclingress
+      - '5.1'
+      - five
+      - all

@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  become_method: sudo
+  become: yes
+
+  tasks:
+  
+  - name: 1.20 Ensure that S3 Buckets are configured with 'Block public access'  
+    shell: echo "{{ ansible_local.s3blockpubaccess }}" 
+    register: s3blockpubaccess
+    ignore_errors: True
+    tags:
+      - s3blockpubaccess
+      - 1.20
+      - one
+      - all
+
+  - name: 1.20 Fetching bucketnames
+    shell: | 
+       aws s3api list-buckets | jq '.Buckets[].Name' | sed 's/"//g'
+    register: bucket_name
+    when: s3blockpubaccess.stdout.find("FAILED") != -1
+    tags:
+      - s3blockpubaccess
+      - 1.20
+      - one
+      - all
+
+  - name: 1.20 Ensure that S3 Buckets are configured with 'Block public access'
+    shell: |
+      aws s3api put-public-access-block --bucket {{ "item" }} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPu blicBuckets=true" 
+      aws s3control put-public-access-block --public-access-block-configuration "BlockPublicAcls=true, IgnorePublicAcls=true, BlockPublicPolicy=true, RestrictPublicBuckets=true" --account-id 405042254276
+    loop: "{{ bucket_name.stdout_lines }}"
+    when: s3blockpubaccess.stdout.find("FAILED") != -1
+    tags:
+        - s3blockpubaccess
+        - 1.20
+        - one
+        - all
